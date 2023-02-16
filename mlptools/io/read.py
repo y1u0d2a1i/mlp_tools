@@ -1,5 +1,5 @@
-from mlp_tools.atoms.atom import MLPAtoms
-from mlp_tools.io.parser import PWscfParser
+from mlptools.atoms.atom import MLPAtoms
+from mlptools.io.parser import PWscfParser
 
 
 def read_from_format(path2target=None, format=None):

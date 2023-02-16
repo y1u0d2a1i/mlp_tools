@@ -3,7 +3,7 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from ase.io import read
-from mlp_tools.utils.utils import get_param_idx, remove_empty_from_array
+from mlptools.utils.utils import get_param_idx, remove_empty_from_array
 
 class BaseParser(ABC):
     @abstractmethod
