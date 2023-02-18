@@ -4,6 +4,9 @@ from glob import glob
 import re
 from typing import List
 
+from ovito.io import import_file
+from ovito.io.ase import ovito_to_ase
+
 from mlptools.atoms.atom import MLPAtoms
 from mlptools.io.parser import PWscfParser
 
@@ -36,11 +39,48 @@ def read_from_format(path2target:str=None, format:str=None) -> MLPAtoms:
             symbols=f'Si{parser.get_n_atoms()}'
         )
 
-def read_from_dp_data(path2target:str=None) -> List[MLPAtoms]:
+def read_from_lmp_dump(path2dump:str) -> List[MLPAtoms]:
+    """get list of mlpatoms from lammps dumpfile
+
+    Args:
+        path2dump (str): path to dumpfile
+
+    Raises:
+        Exception: if frame is 0
+
+    Returns:
+        List[MLPAtoms]: _
+    """
+    pipeline = import_file(path2dump)
+    print(f'Number of frames: {pipeline.source.num_frames}')
+    if pipeline.source.num_frames == 0:
+        raise Exception("There's no frame. pls see if the path ia correct")
+
+    all_atoms = []
+    # Loop over all frames of the sequence.
+    for frame_index in range(pipeline.source.num_frames):
+        data = pipeline.source.compute(frame_index)
+        ase_atoms = ovito_to_ase(data)
+
+        n_atoms = ase_atoms.get_positions().shape[0]
+        mlpatoms = MLPAtoms(
+            cell=ase_atoms.cell[:],
+            coord=ase_atoms.get_positions(),
+            force=None,
+            energy=None,
+            n_atoms=n_atoms,
+            structure_id=None,
+            symbols=f'Si{n_atoms}'
+        )
+        all_atoms.append(mlpatoms)
+    return all_atoms
+
+
+def read_from_dp_data(path2target:str) -> List[MLPAtoms]:
     """Get list of MLPAtoms from deepmd data.
 
     Args:
-        path2target (str, optional): path to output dir. Defaults to None.
+        path2target (str): path to output dir. Defaults to None.
 
     Raises:
         Exception: If path is uncorrect

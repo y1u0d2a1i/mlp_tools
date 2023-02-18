@@ -3,6 +3,7 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from ase.io import read
+
 from mlptools.utils.utils import get_param_idx, remove_empty_from_array
 
 class BaseParser(ABC):
@@ -32,7 +33,7 @@ class BaseParser(ABC):
 
 
 # Quantum espresso
-class PWscfParser(BaseParser):    
+class PWscfParser(BaseParser):
     def __init__(self, path_to_target, name_scf_in='scf.in', name_scf_out='scf.out') -> None:
         super().__init__()
         self.path_to_target = path_to_target
@@ -123,4 +124,4 @@ class PWscfParser(BaseParser):
         # au2ang = lattice_constant
         # return au2ang
         au2ang = 0.529177211
-        return au2ang   
+        return au2ang
