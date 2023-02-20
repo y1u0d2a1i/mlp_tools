@@ -35,7 +35,7 @@ def get_predictions(atoms: MLPAtoms, path2model:str=None, model:DeepPot=None) ->
         atoms (MLPAtoms): _description_
         path2model (str): path to dp model
         model (DeepPot): trained model object
-        
+
     Returns:
         Tuple: (energy, force, virial)
     """
@@ -44,9 +44,9 @@ def get_predictions(atoms: MLPAtoms, path2model:str=None, model:DeepPot=None) ->
     
     if model is None:
         model = DeepPot(path2model)
-    dp = DeepPot(path2model)
+
     coord = atoms.coord.reshape([1, -1])
     cell = atoms.cell.reshape([1, -1])
     atype = np.zeros(atoms.n_atoms)
-    energy, force, virial = dp.eval(coord, cell, atype)
+    energy, force, virial = model.eval(coord, cell, atype)
     return (energy, force, virial)

@@ -70,7 +70,8 @@ def read_from_lmp_dump(path2dump:str) -> List[MLPAtoms]:
             energy=None,
             n_atoms=n_atoms,
             structure_id=None,
-            symbols=f'Si{n_atoms}'
+            symbols=f'Si{n_atoms}',
+            frame=frame_index
         )
         all_atoms.append(mlpatoms)
     return all_atoms

@@ -6,7 +6,7 @@ from ovito.pipeline import StaticSource, Pipeline
 from ovito.io.ase import ase_to_ovito
 
 class MLPAtoms:
-    def __init__(self, cell, coord, energy, force,  n_atoms, structure_id=None, symbols=None) -> None:
+    def __init__(self, cell, coord, energy, force,  n_atoms, structure_id=None, symbols=None, frame=None) -> None:
         self.cell = cell
         self.coord = coord
         self.energy = energy
@@ -14,6 +14,7 @@ class MLPAtoms:
         self.n_atoms = n_atoms
         self.structure_id = structure_id
         self.symbols = symbols
+        self.frame = frame
     
     def get_volume(self):
         cell = self.cell
