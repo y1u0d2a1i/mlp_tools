@@ -70,7 +70,16 @@ class MLPAtoms:
         else:
             print(f"There's no neighbors in {rcut} ang")
 
-    def get_rdf(self, rcut, bins):
+    def get_rdf(self, rcut=6, bins=100) -> np.ndarray:
+        """get radial distribution function val
+
+        Args:
+            rcut (int, optional): cutoff radius. Defaults to 6.
+            bins (int, optional): _description_. Defaults to 100.
+
+        Returns:
+            np.ndarray: 1st: distance, 2nd: rdf value
+        """
         ase_atoms = self.get_ase_atoms()
         pipeline = Pipeline(source = StaticSource(data=ase_to_ovito(ase_atoms)))
         modifier = CoordinationAnalysisModifier(cutoff=rcut, number_of_bins=bins, partial=True)
