@@ -1,6 +1,8 @@
 import numpy as np
 
 from ase import Atoms
+from ase.neighborlist import NeighborList
+
 from ovito.modifiers import CoordinationAnalysisModifier
 from ovito.pipeline import StaticSource, Pipeline
 from ovito.io.ase import ase_to_ovito
@@ -15,6 +17,8 @@ class MLPAtoms:
         self.structure_id = structure_id
         self.symbols = symbols
         self.frame = frame
+
+        self.distance_btw_nearest_neighbor = None
     
     def get_volume(self):
         cell = self.cell
@@ -44,6 +48,27 @@ class MLPAtoms:
             cell=self.cell,
             pbc=(1,1,1)
             )
+
+    def set_distance_btw_nearest_neighbor(self, rcut=8) -> None:
+        """set distance(ang) between nearest neighbor
+
+        Args:
+            rcut (int, optional): cutoff radius. Defaults to 8.
+        """
+        aseatoms = self.get_ase_atoms()
+        nl = NeighborList([rcut/2]*self.n_atoms, self_interaction=False, bothways=False)
+        nl.update(aseatoms)
+
+        min_distance_list = []
+        for i in range(self.n_atoms): 
+            nearest_neighbors = nl.get_neighbors(i)[0]
+            distances = aseatoms.get_distances(i, nearest_neighbors, mic=True)
+            min_distance_list.append(min(distances))
+        
+        if len(min_distance_list) > 0:
+            self.distance_btw_nearest_neighbor = min(min_distance_list)
+        else:
+            print(f"There's no neighbors in {rcut} ang")
 
     def get_rdf(self, rcut, bins):
         ase_atoms = self.get_ase_atoms()
