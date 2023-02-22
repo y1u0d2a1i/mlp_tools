@@ -49,26 +49,26 @@ class MLPAtoms:
             pbc=(1,1,1)
             )
 
-    def set_distance_btw_nearest_neighbor(self, rcut=8) -> None:
+    def set_distance_btw_nearest_neighbor(self) -> None:
         """set distance(ang) between nearest neighbor
 
-        Args:
-            rcut (int, optional): cutoff radius. Defaults to 8.
         """
         aseatoms = self.get_ase_atoms()
-        nl = NeighborList([rcut/2]*self.n_atoms, self_interaction=False, bothways=False)
-        nl.update(aseatoms)
+        min_distance_list = [min(distance[np.where(distance != 0.0)]) for distance in aseatoms.get_all_distances(mic=True)]
+        # nl = NeighborList([rcut/2]*self.n_atoms, self_interaction=False, bothways=False)
+        # nl.update(aseatoms)
 
-        min_distance_list = []
-        for i in range(self.n_atoms): 
-            nearest_neighbors = nl.get_neighbors(i)[0]
-            distances = aseatoms.get_distances(i, nearest_neighbors, mic=True)
-            min_distance_list.append(min(distances))
+        # min_distance_list = []
+        # for i in range(self.n_atoms): 
+        #     nearest_neighbors = nl.get_neighbors(i)[0]
+        #     distances = aseatoms.get_distances(i, nearest_neighbors, mic=True)
+        #     print(distances)
+        #     min_distance_list.append(min(distances)))
         
         if len(min_distance_list) > 0:
             self.distance_btw_nearest_neighbor = min(min_distance_list)
         else:
-            print(f"There's no neighbors in {rcut} ang")
+            print(f"There's no neighbors")
 
     def get_rdf(self, rcut=6, bins=100) -> np.ndarray:
         """get radial distribution function val
