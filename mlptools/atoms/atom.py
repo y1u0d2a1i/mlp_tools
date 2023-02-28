@@ -8,7 +8,7 @@ from ovito.pipeline import StaticSource, Pipeline
 from ovito.io.ase import ase_to_ovito
 
 class MLPAtoms:
-    def __init__(self, cell, coord, energy, force,  n_atoms, structure_id=None, symbols=None, frame=None) -> None:
+    def __init__(self, cell, coord, energy, force,  n_atoms, structure_id=None, symbols=None, frame=None, additional_info=None) -> None:
         self.cell = cell
         self.coord = coord
         self.energy = energy
@@ -17,6 +17,7 @@ class MLPAtoms:
         self.structure_id = structure_id
         self.symbols = symbols
         self.frame = frame
+        self.additional_info = additional_info
 
         self.distance_btw_nearest_neighbor = None
     

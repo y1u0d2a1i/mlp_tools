@@ -77,7 +77,7 @@ def read_from_lmp_dump(path2dump:str) -> List[MLPAtoms]:
     return all_atoms
 
 
-def read_from_dp_data(path2target:str) -> List[MLPAtoms]:
+def read_from_dp_data(path2target:str, additional_info=None) -> List[MLPAtoms]:
     """Get list of MLPAtoms from deepmd data.
 
     Args:
@@ -108,7 +108,8 @@ def read_from_dp_data(path2target:str) -> List[MLPAtoms]:
             energy=energy[0] if type(energy) == np.ndarray else energy,
             structure_id=id,
             n_atoms=n_atoms,
-            symbols=f'Si{n_atoms}'
+            symbols=f'Si{n_atoms}',
+            additional_info=additional_info
         )
         all_atoms.append(atoms)
     return all_atoms
