@@ -40,7 +40,7 @@ def get_artificial_dimer(distance_lower_limit:float, distance_upper_limit:float,
 
     dimer_info = np.array([[atoms.energy, atoms.get_atomic_distance()] for atoms in all_atoms])
     dimer_df = pd.DataFrame(data=dimer_info, columns=['energy', 'distance']).sort_values(by='distance').reset_index(drop=True)
-    dimer_df['shifted_energy'] = dimer_df['energy'] - ZERO_POINT_ENERGY
+    dimer_df['shifted_energy'] = dimer_df['energy'] - 2 * ZERO_POINT_ENERGY
 
     interpolate_qe = dimer_df.query('distance > 2.31')[['distance', 'shifted_energy']].values
 
@@ -65,7 +65,7 @@ def get_artificial_dimer(distance_lower_limit:float, distance_upper_limit:float,
             MLPAtoms(
                 cell=np.array([[15, 0, 0], [0, 15, 0], [0, 0, 15]]),
                 coord=np.array([[7.5, 7.5, 7.5], [7.5+distance, 7.5, 7.5]]),
-                energy=ZERO_POINT_ENERGY+energy,
+                energy=(2 * ZERO_POINT_ENERGY)+energy,
                 force=np.array([[ force, 0, 0], [-force, 0, 0]]),
                 n_atoms=2,
                 structure_id='mp-149_dimer',
