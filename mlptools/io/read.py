@@ -35,6 +35,7 @@ def read_from_format(path2target:str=None, format:str=None) -> MLPAtoms:
             force=parser.get_force(),
             energy=parser.get_energy(),
             n_atoms=parser.get_n_atoms(),
+            total_magnetization=parser.get_total_magnetization(),
             structure_id=parser.get_structure_id(),
             symbols=f'Si{parser.get_n_atoms()}'
         )

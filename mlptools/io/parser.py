@@ -31,6 +31,10 @@ class BaseParser(ABC):
     def get_structure_id(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_total_magnetization(self):
+        raise NotImplementedError()
+
 
 # Quantum espresso
 class PWscfParser(BaseParser):
@@ -99,6 +103,15 @@ class PWscfParser(BaseParser):
 
     def get_n_atoms(self):
         return self.num_atom
+    
+    def get_total_magnetization(self):
+        total_mag = list(filter(lambda x: 'total magnetization' in x, self.O_lines))
+        if len(total_mag) == 0:
+            return None
+        
+        mag_val_idx = 3
+        final_mag = float(list(filter(lambda x: x != '', total_mag[-1].split(' ')))[mag_val_idx])
+        return final_mag
 
 
     def validate_o_lines(self):
