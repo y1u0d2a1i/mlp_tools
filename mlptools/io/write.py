@@ -8,7 +8,7 @@ class N2p2Writer:
         
 
     def n2p2_comment(self):
-        return f'comment {self.atoms.path} .'
+        return f'comment {self.atoms.structure_id} .'
 
     def n2p2_cell(self):
         line = []
@@ -21,7 +21,7 @@ class N2p2Writer:
     
     def n2p2_atom(self):
         line = []
-        coord = self.atoms.cell
+        coord = self.atoms.coord
         force = self.atoms.force
         species = 'Si'
         for c, f in zip(coord, force):
@@ -43,20 +43,20 @@ class N2p2Writer:
         if self.is_comment:
             block = [
                 'begin',
-                self.n2p2_comment,
-                self.n2p2_cell,
-                self.n2p2_atom,
-                self.n2p2_energy,
-                self.n2p2_charge,
+                self.n2p2_comment(),
+                self.n2p2_cell(),
+                self.n2p2_atom(),
+                self.n2p2_energy(),
+                self.n2p2_charge(),
                 'end \n' 
             ]
         else:
             block = [
                 'begin',
-                self.n2p2_cell,
-                self.n2p2_atom,
-                self.n2p2_energy,
-                self.n2p2_charge,
+                self.n2p2_cell(),
+                self.n2p2_atom(),
+                self.n2p2_energy(),
+                self.n2p2_charge(),
                 'end \n' 
             ]
-        return flatten(block) 
+        return list(flatten(block))
