@@ -1,3 +1,5 @@
+import collections
+
 def get_param_idx(param, lines):
     """
     get param index from scf.in and scf.out
@@ -13,3 +15,13 @@ def get_param_idx(param, lines):
 
 def remove_empty_from_array(arr: list) -> list:
     return list(filter(None, arr))
+
+def flatten(l):
+    """
+    配列のを１次元にする
+    """
+    for el in l:
+        if isinstance(el, collections.abc.Iterable) and not isinstance(el, (str, bytes)):
+            yield from flatten(el)
+        else:
+            yield el
