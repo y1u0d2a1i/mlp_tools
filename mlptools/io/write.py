@@ -4,7 +4,7 @@ from typing import List
 from abc import ABC, abstractmethod
 
 
-def write(atoms: MLPAtoms, format: str) -> List[str]:
+def write_from_atoms(atoms: MLPAtoms, format: str) -> List[str]:
     if format == 'n2p2':
         writer = N2p2Writer(atoms)
     else:
