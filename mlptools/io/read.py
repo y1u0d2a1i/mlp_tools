@@ -115,3 +115,60 @@ def read_from_dp_data(path2target:str, additional_info=None) -> List[MLPAtoms]:
         )
         all_atoms.append(atoms)
     return all_atoms
+
+
+def read_from_n2p2_data(path2target:str) -> List[MLPAtoms]:
+    def get_lattice_from_n2p2_data(path2target):
+        with open(os.path.join(path2target, "input.data"), mode="r") as f:
+            lines = [s.strip() for s in f.readlines()]
+        block = []
+        block_start = []
+        block_end = []
+        for i, line in enumerate(lines):
+            if line == "begin":
+                block_start.append(i)
+            elif line == "end":
+                block_end.append(i)
+
+        for i in range(len(block_start)):
+            block.append(lines[block_start[i] : block_end[i] + 1])
+        return block
+    
+    blocks = get_lattice_from_n2p2_data(path2target)
+
+    all_mlpatoms = []
+    for i, block in enumerate(blocks):
+        # show progress
+        if i % 1000 == 0:
+            print(f"{i} / {len(blocks)}")
+            
+        comment = [l for l in block if l.startswith("comment")]
+        structure_id = comment[0].split(' ')[1]
+
+        lattice = [l for l in block if l.startswith("lattice")]
+        lattice = np.array([l.split(' ')[1:] for l in lattice], dtype=float)
+        
+        atoms = [l for l in block if l.startswith("atom")]
+        coord = []
+        force = []
+        for atom in atoms:
+            splitted_atom = atom.split(' ')
+            coord.append(splitted_atom[1:4])
+            force.append(splitted_atom[-3:])
+        coord = np.array(coord, dtype=float)
+        force = np.array(force, dtype=float)
+        
+        energy = float([l for l in block if l.startswith("energy")][0].split(' ')[1])
+        charge = float([l for l in block if l.startswith("charge")][0].split(' ')[1])
+
+        mlpatom = MLPAtoms(
+            cell=lattice,
+            coord=coord,
+            force=force,
+            energy=energy,
+            n_atoms=len(coord),
+            structure_id=structure_id,
+            symbols=f'Si{len(coord)}'
+        )
+        all_mlpatoms.append(mlpatom)
+    return all_mlpatoms
