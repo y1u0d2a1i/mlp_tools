@@ -1,7 +1,27 @@
 from mlptools.atoms.atom import MLPAtoms
 from mlptools.utils.utils import flatten
+from typing import List
+from abc import ABC, abstractmethod
 
-class N2p2Writer:
+
+def write_from_atoms(atoms: MLPAtoms, format: str) -> List[str]:
+    if format == 'n2p2':
+        writer = N2p2Writer(atoms)
+    else:
+        raise Exception('Not supported format')
+    
+    return writer.output()
+
+
+class BaseWriter(ABC):
+    def __init__(self, atoms) -> None:
+        self.atoms = atoms
+
+    @abstractmethod
+    def output(self):
+        raise NotImplementedError
+    
+class N2p2Writer(BaseWriter):
     def __init__(self, atoms, is_comment=True) -> None:
         self.is_comment = is_comment
         self.atoms = atoms
@@ -39,7 +59,7 @@ class N2p2Writer:
     def n2p2_charge(self):
         return 'charge 0.0'
     
-    def n2p2_block(self):
+    def output(self):
         if self.is_comment:
             block = [
                 'begin',
