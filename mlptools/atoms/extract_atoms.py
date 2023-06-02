@@ -10,7 +10,7 @@ def extract_atoms(
         x_range:List[float|int], 
         y_range:List[float|int], 
         z_range:List[float|int]) -> Atoms:
-    """Extract atoms from a larger cell
+    """Extract atoms from a larger cell based on the given ranges
 
     Args:
         atoms (Atoms): ase atoms object
