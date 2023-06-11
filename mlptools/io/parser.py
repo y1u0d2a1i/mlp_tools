@@ -38,7 +38,7 @@ class BaseParser(ABC):
 
 # Quantum espresso
 class PWscfParser(BaseParser):
-    def __init__(self, path_to_target, name_scf_in='scf.in', name_scf_out='scf.out') -> None:
+    def __init__(self, path_to_target, name_scf_in='scf.in', name_scf_out='scf.out', structure_id=None) -> None:
         super().__init__()
         self.path_to_target = path_to_target
         self.name_scf_in = name_scf_in
@@ -62,7 +62,11 @@ class PWscfParser(BaseParser):
         self.au2ang = self.get_au2ang()
         self.rv2ev = 13.60
 
-        self.structure_id = list(filter(lambda x: 'mp-' in x, path_to_target.split('/')))[0]
+        mpid = list(filter(lambda x: 'mp-' in x, path_to_target.split('/')))
+        if structure_id is None and len(mpid) > 0:
+            self.structure_id = mpid[0]
+        else:
+            self.structure_id = structure_id
 
         self.qeltype = 'SCF'
 

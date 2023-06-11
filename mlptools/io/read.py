@@ -11,7 +11,7 @@ from mlptools.atoms.atom import MLPAtoms
 from mlptools.io.parser import PWscfParser
 
 
-def read_from_format(path2target:str=None, format:str=None) -> MLPAtoms:
+def read_from_format(path2target:str=None, format:str=None, structure_id=None) -> MLPAtoms:
     """Get MLPAtoms from some outputs. Currently support only PWscf
 
     Args:
@@ -25,7 +25,7 @@ def read_from_format(path2target:str=None, format:str=None) -> MLPAtoms:
         MLPAtoms: _description_
     """
     if format == 'espresso-in':
-        parser = PWscfParser(path2target)
+        parser = PWscfParser(path2target, structure_id=structure_id)
     else:
         raise Exception(f'{format} is not supported')
     
