@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='tools for machine learning potential',
     version='1.0.0',
-    packages=['mlptools'],
+    packages=find_packages(),
     url='',
     license='',
     author='y1u0d2',

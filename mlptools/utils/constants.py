@@ -16,7 +16,8 @@ def get_all_si_atoms(device='local') -> List[MLPAtoms]:
         raise Exception('Not supported device')
 
     all_data = []
-    for mp_dir in glob(f'{path2data}/mp*'):
+    all_dirs = glob(f'{path2data}/*') + [f'{path2data}/amorphous']
+    for mp_dir in all_dirs:
         # get all directories
         all_data += glob(f'{mp_dir}/*')
 
