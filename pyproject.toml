@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "mlp_tools"
+version = "0.1.0"
+description = ""
+authors = ["y1u0d2a1i <y1u0d2a1i@icloud.com>"]
+readme = "README.md"
+packages = [{include = "mlp_tools"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+jupyter = "^1.0.0"
+numpy = "^1.25.0"
+scikit-learn = "^1.3.0"
+seaborn = "^0.12.2"
+ase = "^3.22.1"
+pymatgen = "^2023.6.28"
+ovito = "^3.8.5"
+tools-for-machine-learning-potential = {git = "https://github.com/y1u0d2a1i/mlp_tools.git"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
