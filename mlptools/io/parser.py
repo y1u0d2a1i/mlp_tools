@@ -52,7 +52,6 @@ class PWscfParser(BaseParser):
         with open(os.path.join(path_to_target, name_scf_out)) as f:
             atom_gen = read_espresso_out(f, index=slice(None))
             ase_atoms = next(atom_gen)
-            print(ase_atoms)
         self.ase_atoms = ase_atoms
 
         with open(f'{path_to_target}/{name_scf_in}') as f:
