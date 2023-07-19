@@ -63,5 +63,29 @@ class SputteringYieldCalculator():
         return pd.DataFrame(result, columns=["timestep", "num_sputtered_atom"])
     
 
-    def get_sputtering_yield_with_ion_dose(self):
-        pass
+    def get_sputtering_yield_with_ion_dose(self, area:float=4.0725**2, num_injection:int=15, target_atom_type:List[int]=[1]) -> pd.DataFrame:
+        sp_df = self.get_n_sputtered_atoms_with_timestep(target_atom_type=target_atom_type)
+
+        def get_num_inserted_atom(timestep, insert_atom_every_timestep):
+            return (timestep // insert_atom_every_timestep) + 1
+
+        def get_ion_dose(area, timestep, insert_atom_every_timestep):
+            return get_num_inserted_atom(timestep, insert_atom_every_timestep) / area
+
+        sp_df['num_inserted_atoms'] = sp_df['timestep'].apply(lambda x: get_num_inserted_atom(x, self.inject_atom_every_timestep))
+        sp_df['ion_dose'] = sp_df['timestep'].apply(lambda x: get_ion_dose(area, x, self.inject_atom_every_timestep))
+
+        max_num_inserted_atoms = sp_df['num_inserted_atoms'].max()
+
+        sp_df_injection = sp_df.drop_duplicates(subset=['timestep'])
+        sp_df_injection = sp_df_injection.query('timestep % @self.inject_atom_every_timestep == 0').copy()
+
+        # get average number of sputtered atoms
+        def get_averaged_num_sputtered_atoms(num_inserted_atoms, num_injection):
+            lower = num_inserted_atoms - num_injection if num_inserted_atoms - num_injection > 0 else 0
+            upper = num_inserted_atoms + num_injection if num_inserted_atoms + num_injection < max_num_inserted_atoms else max_num_inserted_atoms
+            return sp_df.query('num_inserted_atoms >= @lower and num_inserted_atoms <= @upper')['num_sputtered_atom'].sum() / (upper - lower + 1)
+
+        sp_df_injection['num_sputtered_atom_avg'] = sp_df_injection['num_inserted_atoms'].apply(lambda x: get_averaged_num_sputtered_atoms(x, num_injection))
+
+        return sp_df_injection
