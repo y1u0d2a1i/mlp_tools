@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["y1u0d2a1i <y1u0d2a1i@icloud.com>"]
 readme = "README.md"
-packages = [{include = "mlp_tools"}]
+packages = [{include = "mlptools"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
@@ -15,7 +15,7 @@ seaborn = "^0.12.2"
 ase = "^3.22.1"
 pymatgen = "^2023.6.28"
 ovito = "^3.8.5"
-tools-for-machine-learning-potential = {git = "https://github.com/y1u0d2a1i/mlp_tools.git"}
+pydantic = "^2.1.1"
 
 
 [build-system]
