@@ -17,8 +17,7 @@ class DepthProfileCalculator():
             y_width: float, 
             z_width: float, 
             upper_limit: float,
-            step: float=0.5,
-            moving_average_with_depth_interval: int=3) -> pd.DataFrame:
+            step: float=0.5) -> pd.DataFrame:
         type_idx_in_atoms = np.where(atoms.symbols.numbers == atom_type)[0]
         position_df = pd.DataFrame(data=atoms.positions[type_idx_in_atoms], columns=['x', 'y', 'z'])
         z_position = position_df['z'].values
@@ -39,6 +38,7 @@ class DepthProfileCalculator():
             density_list.append(density)
 
         df = pd.DataFrame(data=np.stack([linspace, density_list]).T, columns=['linspace', 'density'])
-        df['ma'] = df['density'].rolling(int(moving_average_with_depth_interval / step + 1), center=True).mean()
+        # 移動平均はstep sizeに応じて動的に変更する
+        df['ma'] = df['density'].rolling(int(7), center=True).mean()
         df.dropna(axis=0, inplace=True)
         return df
