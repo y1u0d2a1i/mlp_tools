@@ -89,3 +89,24 @@ class SputteringYieldCalculator():
         sp_df_injection['num_sputtered_atom_avg'] = sp_df_injection['num_inserted_atoms'].apply(lambda x: get_averaged_num_sputtered_atoms(x, num_injection))
 
         return sp_df_injection
+    
+
+    def get_injected_and_sputtered_atoms(self, target_atom_type:List[int]=[1]):
+        sp_df = self.get_n_sputtered_atoms_with_timestep(target_atom_type=target_atom_type)
+        max_timestep = sp_df["timestep"].max()
+        num_injection = int(np.ceil(max_timestep/self.inject_atom_every_timestep))
+        num_injected_sputtered_atoms = {
+            'num_injected_atoms': [],
+            'num_sputtered_atoms': []
+        }
+        for i in range(num_injection):
+            sum_up_timestep_inteval = (self.inject_atom_every_timestep * i, self.inject_atom_every_timestep * (i + 1))
+            num_injected_atoms = i+1
+            num_sputtered_atom_per_injection = sp_df.query(f"{sum_up_timestep_inteval[0]} <= timestep <= {sum_up_timestep_inteval[1]}")['num_sputtered_atom'].sum()
+            print(f"Sum up timestep interval: {sum_up_timestep_inteval}")
+            print(f"Number of injected atoms: {num_injected_atoms}, sputtered atoms: {num_sputtered_atom_per_injection}")
+
+            num_injected_sputtered_atoms['num_injected_atoms'].append(num_injected_atoms)
+            num_injected_sputtered_atoms['num_sputtered_atoms'].append(num_sputtered_atom_per_injection)
+        num_injected_sputtered_atoms_df = pd.DataFrame(num_injected_sputtered_atoms)
+        return num_injected_sputtered_atoms_df
