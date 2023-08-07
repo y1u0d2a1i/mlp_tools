@@ -1,4 +1,5 @@
 import collections
+from mlptools.utils.constants import elements_dict
 
 def get_param_idx(param, lines):
     """
@@ -25,3 +26,19 @@ def flatten(l):
             yield from flatten(el)
         else:
             yield el
+
+def get_mass_atom(species):
+    mass_atom = elements_dict[species.upper()]
+    if mass_atom:
+        return mass_atom
+    else:
+        return 'none'
+
+def get_atom_number(species):
+    #  elm = Element(species)
+    elm = elements_dict[species.upper()]
+    atom_num = list(elements_dict.keys()).index(species.upper())
+    try:
+        return int(atom_num) + 1
+    except:
+        print('Invalid speacies')
