@@ -37,7 +37,7 @@ def read_from_format(path2target:str=None, format:str=None, structure_id=None) -
             n_atoms=parser.get_n_atoms(),
             total_magnetization=parser.get_total_magnetization(),
             structure_id=parser.get_structure_id(),
-            symbols=f'Si{parser.get_n_atoms()}',
+            symbols=parser.get_symbol(),
             ase_atoms=parser.get_ase_atoms(),
             path=path2target,
         )

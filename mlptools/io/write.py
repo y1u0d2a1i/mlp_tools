@@ -6,9 +6,9 @@ from ase import Atoms
 import os
 
 
-def write_from_atoms(atoms: MLPAtoms, format: str) -> List[str]:
+def write_from_atoms(atoms: MLPAtoms, format: str, structure_id=None) -> List[str]:
     if format == 'n2p2':
-        writer = N2p2Writer(atoms)
+        writer = N2p2Writer(atoms.ase_atoms, structure_id=structure_id)
     else:
         raise Exception('Not supported format')
     

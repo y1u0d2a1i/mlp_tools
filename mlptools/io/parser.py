@@ -41,6 +41,10 @@ class BaseParser(ABC):
     def get_ase_atoms(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def get_symbol(self):
+        raise NotImplementedError()
+
 
 # Quantum espresso
 class PWscfParser(BaseParser):
@@ -62,7 +66,7 @@ class PWscfParser(BaseParser):
         self.validate_o_lines()
         
         self.num_atom = ase_atoms.get_global_number_of_atoms()
-        self.cell = np.array([vec for vec in ase_atoms.cell])
+        self.cell = ase_atoms.cell[:]
         self.coord = ase_atoms.positions
 
         mpid = list(filter(lambda x: 'mp-' in x, path_to_target.split('/')))
@@ -99,6 +103,9 @@ class PWscfParser(BaseParser):
     
     def get_ase_atoms(self):
         return self.ase_atoms
+    
+    def get_symbol(self):
+        return self.ase_atoms.symbols
     
     def get_total_magnetization(self):
         total_mag = list(filter(lambda x: 'total magnetization' in x, self.O_lines))

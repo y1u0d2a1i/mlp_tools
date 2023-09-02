@@ -6,6 +6,7 @@ from ase.neighborlist import NeighborList
 from ovito.modifiers import CoordinationAnalysisModifier
 from ovito.pipeline import StaticSource, Pipeline
 from ovito.io.ase import ase_to_ovito
+from typing import Dict
 
 class MLPAtoms:
     def __init__(self, cell, coord, energy, force, n_atoms, total_magnetization=None, structure_id=None, symbols=None, frame=None, additional_info=None, path=None, ase_atoms=None) -> None:
@@ -93,3 +94,26 @@ class MLPAtoms:
         pipeline.modifiers.append(modifier)
         rdf_table = pipeline.compute().tables['coordination-rdf']
         return rdf_table.xy()
+    
+    def get_rdf_for_multiple_species(self, rcut=6, bins=100) -> Dict[str, np.ndarray]:
+        """get radial distribution function table
+
+        Args:
+            rcut (int, optional): cutoff radius. Defaults to 6.
+            bins (int, optional): _description_. Defaults to 100.
+
+        Returns:
+            Dict[str, np.ndarray]: distance and rdf value for each species combination
+        """
+        ase_atoms = self.get_ase_atoms()
+        pipeline = Pipeline(source = StaticSource(data=ase_to_ovito(ase_atoms)))
+        modifier = CoordinationAnalysisModifier(cutoff=rcut, number_of_bins=bins, partial=True)
+        pipeline.modifiers.append(modifier)
+        rdf_table = pipeline.compute().tables['coordination-rdf']
+        rdf_component_name = rdf_table.y.component_names
+        rdf_dict = {}
+        for i, name in enumerate(rdf_component_name):
+            if not "distance" in rdf_dict.keys():
+                rdf_dict["distance"] = rdf_table.xy()[:, 0]
+            rdf_dict[name] = rdf_table.y[:, i]
+        return rdf_dict
