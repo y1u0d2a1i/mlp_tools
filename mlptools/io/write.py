@@ -81,17 +81,18 @@ class QuantumEspressoWriter(BaseWriter):
         return scf_input_lines
 
 class N2p2Writer(BaseWriter):
-    def __init__(self, atoms, is_comment=True) -> None:
+    def __init__(self, atoms: Atoms, is_comment=True, structure_id=None) -> None:
         self.is_comment = is_comment
         self.atoms = atoms
+        self.structure_id = structure_id
         
 
     def n2p2_comment(self):
-        return f'comment {self.atoms.structure_id} .'
+        return f'comment {self.structure_id} .'
 
     def n2p2_cell(self):
         line = []
-        cell = self.atoms.cell
+        cell = self.atoms.cell[:]
         for l_vec in cell:
             l_vec = [str(i) for i in list(l_vec)]
             tmp = ' '.join(l_vec)
@@ -100,19 +101,19 @@ class N2p2Writer(BaseWriter):
     
     def n2p2_atom(self):
         line = []
-        coord = self.atoms.coord
-        force = self.atoms.force
-        species = 'Si'
-        for c, f in zip(coord, force):
+        coord = self.atoms.positions
+        force = self.atoms.get_forces()
+        species = self.atoms.get_chemical_symbols()
+        for c, f, specie in zip(coord, force, species):
             c = [str(i) for i in list(c)]
             f = [str(i) for i in list(f)]
             tmp_c = ' '.join(c)
             tmp_f = ' '.join(f)
-            line.append(f'atom {tmp_c} {species} 0 0 {tmp_f}')
+            line.append(f'atom {tmp_c} {specie} 0 0 {tmp_f}')
         return line
     
     def n2p2_energy(self):
-        energy = self.atoms.energy
+        energy = self.atoms.get_potential_energy()
         return f'energy {energy}'
     
     def n2p2_charge(self):
