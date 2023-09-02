@@ -60,7 +60,7 @@ class QuantumEspressoWriter(BaseWriter):
         for vec in self.atoms.get_cell():
             cell_line = ' '.join(map(str, vec))
             cell_lines.append(cell_line)
-            print(cell_line)
+            # print(cell_line)
         # change cell
         cell_idx = self.get_param_idx('CELL_PARAMETERS {angstrom}', scf_input_lines) 
         # insert list to list
@@ -72,7 +72,7 @@ class QuantumEspressoWriter(BaseWriter):
         for symbol, scaled_position in zip(self.atoms.get_chemical_symbols(), self.atoms.get_scaled_positions()):
             position_line = f'{symbol} ' + ' '.join(map(str, scaled_position))
             position_lines.append(position_line)
-            print(position_line)
+            # print(position_line)
         # change position
         position_idx = self.get_param_idx('ATOMIC_POSITIONS {crystal}', scf_input_lines)
         scf_input_lines.insert(position_idx+1, position_lines)
