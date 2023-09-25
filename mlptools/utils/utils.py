@@ -1,6 +1,24 @@
 import collections
 from mlptools.utils.constants import elements_dict
 
+
+
+def log_decorator(func):
+    """関数の前後にログを出力するデコレータ
+
+    Parameters
+    ----------
+    func : _type_
+        _description_
+    """
+    def wrapper(*args, **kwargs):
+        print("*-" * 30)
+        result = func(*args, **kwargs)
+        print("*-" * 30)
+        return result
+    return wrapper
+
+
 def get_param_idx(param, lines):
     """
     get param index from scf.in and scf.out

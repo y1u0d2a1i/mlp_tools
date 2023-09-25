@@ -1,9 +1,11 @@
 from typing import Dict, List
 import os
 import pandas as pd
+import numpy as np
+import math
 
-from mlptools.utils.utils import remove_empty_from_array
-
+from mlptools.config.symmetry_function import RadialSymmetryFunctionConfig, AngularSymmetryFunctionConfig
+from mlptools.utils.utils import remove_empty_from_array, log_decorator
 
 class SymmetryFunctionValueReader():
     def __init__(self, path2target):
@@ -182,3 +184,162 @@ class SymmetryFunctionValueReader():
             sf_val_df_dict[atom_symbol] = pd.DataFrame(sf_val_list, columns=sf_columns)
             print(f"Symmetry function dataframe of {atom_symbol} is created")
         return sf_val_df_dict
+
+
+class SymmetryFunction:
+    def cutoff_func1(self, r_ij, r_c):
+        if r_ij <= r_c:
+            return 0.5 * (math.cos(((np.pi * r_ij) / r_c)) + 1)
+        elif r_ij > r_c:
+            return 0
+
+    def cutoff_func2(self, r_ij, r_c):
+        if r_ij <= r_c:
+            return (np.tanh(1-(r_ij/r_c)))**3
+        elif r_ij > r_c:
+            return 0
+
+    def radial_symmetry_function_2(self, eta, r_ij, r_shift, r_cutoff, cut_func_type=1):
+        cutoff_func = ''
+        if cut_func_type == 1:
+           cutoff_func = self.cutoff_func1(r_ij, r_cutoff)
+        return math.exp(-1 * eta * (r_ij - r_shift) ** 2) * cutoff_func
+    
+    def ang_symmetry_function_3(self, theta, lambdas, zeta, is_degree=True):
+        if is_degree:
+            theta = np.radians(theta)
+        return 2**(1-zeta) * (1 + lambdas * np.cos(theta))**zeta
+
+
+class SymmetryFunctionSettingReader():
+    SF_TYPE_IDX = 2
+
+    def __init__(self, path2target, input_filename="input.nn") -> None:
+        path2input = os.path.join(path2target, input_filename)
+        if not os.path.exists(path2input):
+            raise ValueError(f"{input_filename} does not exist")
+        
+        self.path2input = path2input
+    
+
+    def read_sf_setting_lines(self):
+        with open(self.path2input, mode="r") as f:
+            lines = [s.strip() for s in f.readlines()]
+
+        sf_lines = list(filter(lambda s: s.startswith("symfunction_short"), lines))
+        return sf_lines
+
+
+    def get_radial_sf_lines(self):
+        sf_lines = self.read_sf_setting_lines()
+        sf_lines_splitted = [line.strip().split() for line in sf_lines]
+        radial_sf_lines = list(filter(lambda s: s[self.SF_TYPE_IDX] == "2", sf_lines_splitted))
+        return radial_sf_lines
+
+
+    def get_angular_sf_lines(self):
+        sf_lines = self.read_sf_setting_lines()
+        sf_lines_splitted = [line.strip().split() for line in sf_lines]
+        angular_sf_lines = list(filter(lambda s: s[self.SF_TYPE_IDX] == "3", sf_lines_splitted))
+        return angular_sf_lines
+
+
+    def _get_radial_sf_config(self) -> Dict[str, List[RadialSymmetryFunctionConfig]]:
+        """n2p2の入力ファイルからRadialSymmetryFunctionConfigのリストをバリュー、結合をキーとする辞書を返却する
+
+        Returns
+        -------
+        Dict[str, List[RadialSymmetryFunctionConfig]]
+            _description_
+        """
+        radial_sf_lines = self.get_radial_sf_lines()
+        radial_sf_config_list = []
+        radial_sf_config_dict = {}
+
+        # RadialSymmetryFunctionConfigのリストを作成
+        print(f"Number of Radial Symmetry Funciton: {len(radial_sf_lines)}")
+        for radial_sf_line in radial_sf_lines:
+            radial_sf_config = RadialSymmetryFunctionConfig(
+                bond=f"{radial_sf_line[1]}-{radial_sf_line[3]}", 
+                eta=float(radial_sf_line[4]), 
+                rs=float(radial_sf_line[5]), 
+                rcut=float(radial_sf_line[6])
+            )
+            radial_sf_config_list.append(radial_sf_config)
+        # bondをキーとした辞書を作成
+        for radial_sf_config in radial_sf_config_list:
+            if radial_sf_config_dict.get(radial_sf_config.bond) is None:
+                radial_sf_config_dict[radial_sf_config.bond] = []
+            else:
+                radial_sf_config_dict[radial_sf_config.bond].append(radial_sf_config)
+        return radial_sf_config_dict
+
+
+    def _get_angular_sf_config(self) -> Dict[str, List[AngularSymmetryFunctionConfig]]:
+        angular_sf_lines = self.get_angular_sf_lines()
+        # AngularSymmetryFunctionConfigのリストを作成
+        print(f"Number of Angular Symmetry Funciton: {len(angular_sf_lines)}")
+        angular_sf_config_list = []
+        for angular_sf_line in angular_sf_lines:
+            angular_sf_config_list.append(
+                AngularSymmetryFunctionConfig(
+                    bond=f"{angular_sf_line[1]}-{angular_sf_line[3]}-{angular_sf_line[4]}",
+                    eta=float(angular_sf_line[5]),
+                    lambdas=float(angular_sf_line[6]),
+                    zeta=float(angular_sf_line[7]),
+                    rcut=float(angular_sf_line[8])
+                )
+            )
+        # bondをキーとした辞書を作成
+        angular_sf_config_dict = {}
+        for angular_sf_config in angular_sf_config_list:
+            if angular_sf_config_dict.get(angular_sf_config.bond) is None:
+                angular_sf_config_dict[angular_sf_config.bond] = []
+            else:
+                angular_sf_config_dict[angular_sf_config.bond].append(angular_sf_config)
+        return angular_sf_config_dict
+
+    @log_decorator
+    def get_radial_sf_config(self):
+        radial_sf_config_dict = self._get_radial_sf_config()
+        # print number of symmetry function for each bond
+        for bond, radial_sf_config_list in radial_sf_config_dict.items():
+            print(f"{bond} has {len(radial_sf_config_list)} symmetry functions")
+        return radial_sf_config_dict
+    
+    @log_decorator
+    def get_angular_sf_config(self):
+        angular_sf_config_dict = self._get_angular_sf_config()
+        # print number of symmetry function for each bond
+        for bond, angular_sf_config_list in angular_sf_config_dict.items():
+            print(f"{bond} has {len(angular_sf_config_list)} symmetry functions")
+        return angular_sf_config_dict
+
+class SymmetryFunctionVisualizer():
+    def plot_sf_radial(self, config: RadialSymmetryFunctionConfig, rmax: float, ax, fontsize=12) -> None:
+        """
+        plot radial sf from param({eta: , rs: , rcut: })
+        """
+        sf = SymmetryFunction()
+        r_ij = np.linspace(0, rmax, 100)
+        ax.set_title(f'Radial symmetry functions: G2', fontsize=fontsize)
+        ax.set_xlabel(f'r(Å)', fontsize=fontsize)
+        # ax.set_ylabel(f'radial symmetry function : G2', fontsize=fontsize)
+        ax.set_ylabel('$e^{-\eta}(R_{ij}-R_s)^2f_c(R_{ij})$', fontsize=fontsize)
+        sf_value = [sf.radial_symmetry_function_2(eta=config.eta, r_ij=k, r_shift=config.rs, r_cutoff=config.rcut) for k in r_ij]
+        ax.plot(r_ij, sf_value, label=f'η: {config.eta}, Rs: {config.rs}')
+
+
+    def plot_sf_ang(self, config: AngularSymmetryFunctionConfig, ax, fontsize=12) -> None:
+        """
+        plot radial sf from param({eta: , rs: , rcut: })
+        """
+        sf = SymmetryFunction()
+        theta = np.linspace(0, 360)
+        ax.set_title(f'Angular symmetry functions: G3', fontsize=fontsize)
+        ax.set_xlabel(r'$\theta(°)$', fontsize=fontsize)
+        # ax.set_ylabel(f'Angular symmetry function : G3', fontsize=fontsize)
+        ax.set_ylabel(r'$2^{1-\zeta} (1+\lambda \cos\theta_{ijk})^\zeta$', fontsize=fontsize)
+        ax.set_xlim(0, 360)
+        y = sf.ang_symmetry_function_3(theta=theta, lambdas=config.lambdas, zeta=config.zeta)
+        ax.plot(theta, y, label=f'λ: {config.lambdas}, ζ: {config.zeta}')
