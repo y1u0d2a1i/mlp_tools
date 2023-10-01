@@ -23,14 +23,15 @@ class BaseWriter(ABC):
         raise NotImplementedError
 
 class QuantumEspressoWriter(BaseWriter):
-    def __init__(self, atoms: Atoms, path2template: str) -> None:
+    def __init__(self, atoms: Atoms, path2template: str, scf_filename="scf.in") -> None:
         super().__init__(atoms)
         self.template = path2template
+        self.scf_filename = scf_filename
     
 
     def read_template(self):
         # read scf.in.template
-        with open(os.path.join(self.template, 'scf.in'), 'r') as f:
+        with open(os.path.join(self.template, self.scf_filename), 'r') as f:
             lines = [line.strip() for line in f.readlines()]
         return lines
     
