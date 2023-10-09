@@ -23,12 +23,12 @@ class BaseWriter(ABC):
         raise NotImplementedError
 
 class QuantumEspressoWriter(BaseWriter):
-    def __init__(self, atoms: Atoms, path2template: str, scf_filename="scf.in") -> None:
+    def __init__(self, atoms: Atoms, path2template: str, scf_filename="scf.in", out_dir=None) -> None:
         super().__init__(atoms)
         self.template = path2template
         self.scf_filename = scf_filename
+        self.out_dir = out_dir
     
-
     def read_template(self):
         # read scf.in.template
         with open(os.path.join(self.template, self.scf_filename), 'r') as f:
@@ -52,8 +52,12 @@ class QuantumEspressoWriter(BaseWriter):
     
     def output(self):
         scf_input_lines = self.read_template()
-        num_atoms = self.atoms.get_global_number_of_atoms()
+        # change outdir
+        if self.out_dir is not None:
+            outdir_idx = self.get_param_idx('outdir', scf_input_lines)
+            scf_input_lines[outdir_idx] = f"outdir = '{self.out_dir}'"
         # change num of atoms
+        num_atoms = self.atoms.get_global_number_of_atoms()
         num_atoms_idx = self.get_param_idx('nat', scf_input_lines)
         scf_input_lines[num_atoms_idx] = f'nat = {num_atoms}'
 
