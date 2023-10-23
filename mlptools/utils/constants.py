@@ -43,24 +43,33 @@ elements_dict = {'H' : 1.008,'HE' : 4.003, 'LI' : 6.941, 'BE' : 9.012,
 
 def get_all_si_atoms(device='local') -> List[MLPAtoms]:
     if device == 'local':
-        path2data = '/Users/y1u0d2/desktop/Lab/data/qe_data/Si'
+        path2data = '/Users/y1u0d2/desktop/Lab/data/qe_data/Si/atoms'
     elif device == 'gpu':
         path2data = '/home/y1u0d2/data/qe_data/Si'
     else:
         raise Exception('Not supported device')
 
-    all_data = []
-    all_dirs = glob(f'{path2data}/*') + [f'{path2data}/amorphous']
-    for mp_dir in all_dirs:
-        # get all directories
-        all_data += glob(f'{mp_dir}/*')
+    # all_data = []
+    # all_dirs = glob(f'{path2data}/*') + [f'{path2data}/amorphous']
+    # for mp_dir in all_dirs:
+    #     # get all directories
+    #     all_data += glob(f'{mp_dir}/*')
 
+    # all_atoms = []
+    # for path in all_data:
+    #     path2pkl = os.path.join(path, 'mlpatoms.pkl')
+    #     if not os.path.exists(path2pkl):
+    #         continue
+    #     with open(os.path.join(path, 'mlpatoms.pkl'), "rb") as f:
+    #         all_atoms.append(pickle.load(f))
     all_atoms = []
-    for path in all_data:
-        path2pkl = os.path.join(path, 'mlpatoms.pkl')
-        if not os.path.exists(path2pkl):
+    for i, path in enumerate(glob(f"{path2data}/*")):
+        if i % 1000 == 0:
+            print(f"Loading {i}th atom")
+        if os.path.exists(os.path.join(path, 'atoms.pkl')):
+            with open(os.path.join(path, 'atoms.pkl'), "rb") as f:
+                all_atoms.append(pickle.load(f))
+        else:
             continue
-        with open(os.path.join(path, 'mlpatoms.pkl'), "rb") as f:
-            all_atoms.append(pickle.load(f))
     
     return all_atoms

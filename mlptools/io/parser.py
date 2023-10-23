@@ -1,8 +1,10 @@
 import os
 import numpy as np
+import pickle
 
 from abc import ABC, abstractmethod
 from ase.io import read
+from ase import Atoms
 from ase.io.espresso import read_espresso_out, read_espresso_in
 
 
@@ -141,3 +143,58 @@ class PWscfParser(BaseParser):
         # return au2ang
         au2ang = 0.529177211
         return au2ang
+
+
+class ASEParser(BaseParser):
+    def __init__(self, ase_atoms, structure_id=None) -> None:
+        self.structure_id = structure_id 
+        self.ase_atoms = ase_atoms
+        # Atomsのバリデーション
+        self.validate_ase_atoms()
+        # Atomsの取得
+        # self.ase_atoms = self.get_ase_atoms()
+    
+
+    def validate_ase_atoms(self):
+        # if not os.path.exists(os.path.join(self.path2target, self.ase_atoms_pkl_name)):
+        #     raise FileNotFoundError(f"{self.ase_atoms_pkl_name} is not found in {self.path2target}")
+
+        # ase_atoms = pickle.load(open(os.path.join(self.path2target, self.ase_atoms_pkl_name), 'rb'))
+        if not isinstance(self.ase_atoms, Atoms):
+            raise Exception(f"{self.ase_atoms_pkl_name} is not ase.Atoms object")
+
+    
+    def get_cell(self):
+        return self.ase_atoms.cell[:]
+    
+
+    def get_coord(self):
+        return self.ase_atoms.positions
+    
+
+    def get_energy(self, is_ev=True):
+        return self.ase_atoms.get_potential_energy()
+    
+
+    def get_force(self, is_ev_ang=True):
+        return self.ase_atoms.get_forces()
+
+    
+    def get_structure_id(self):
+        return self.structure_id
+
+
+    def get_n_atoms(self):
+        return self.ase_atoms.get_global_number_of_atoms()
+
+
+    def get_ase_atoms(self):
+        return self.ase_atoms
+
+
+    def get_symbol(self):
+        return self.ase_atoms.symbols
+    
+
+    def get_total_magnetization(self):
+        return None

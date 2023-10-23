@@ -6,12 +6,14 @@ from typing import List
 
 from ovito.io import import_file
 from ovito.io.ase import ovito_to_ase
+from ase import Atoms
 
 from mlptools.atoms.atom import MLPAtoms
 from mlptools.io.parser import PWscfParser
+from mlptools.io.parser import ASEParser
 
 
-def read_from_format(path2target:str=None, format:str=None, structure_id=None) -> MLPAtoms:
+def read_from_format(path2target:str=None, format:str=None, structure_id=None, ase_atoms: Atoms=None) -> MLPAtoms:
     """Get MLPAtoms from some outputs. Currently support only PWscf
 
     Args:
@@ -26,6 +28,10 @@ def read_from_format(path2target:str=None, format:str=None, structure_id=None) -
     """
     if format == 'espresso-in':
         parser = PWscfParser(path2target, structure_id=structure_id)
+    elif format == 'ase':
+        parser = ASEParser(
+            ase_atoms=ase_atoms,
+            structure_id=structure_id)
     else:
         raise Exception(f'{format} is not supported')
     
