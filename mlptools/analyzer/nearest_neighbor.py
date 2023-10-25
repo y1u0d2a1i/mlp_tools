@@ -48,8 +48,9 @@ class NearestNeighborCalculator():
                     continue
                 if i == j:
                     continue
-                print(chemical_symbols[i], chemical_symbols[j],distance_matrix[i, j])
                 distance_list.append(distance_matrix[i, j])
+        if len(distance_list) == 0:
+            return None
 
         print(f"Nearst neighbor distance for {target_bond} is {min(distance_list)}")
         return min(distance_list)
@@ -70,7 +71,6 @@ class NearestNeighborCalculator():
         """
         unique_chemical_symbol_list = list(set(chemical_symbols))
         possible_bonds = list(combinations_with_replacement(unique_chemical_symbol_list, 2))
-        print(possible_bonds)
 
         return [Bond(first_atomic_symbol=bond[0], second_atomic_symbol=bond[1]) for bond in possible_bonds]
 
