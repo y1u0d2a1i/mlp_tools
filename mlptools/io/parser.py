@@ -50,10 +50,11 @@ class BaseParser(ABC):
 
 # Quantum espresso
 class PWscfParser(BaseParser):
-    def __init__(self, path_to_target, name_scf_in='scf.in', name_scf_out='scf.out', structure_id=None) -> None:
+    def __init__(self, path_to_target, name_scf_in='scf.in', name_scf_out='scf.out', structure_id=None, is_validate_strict=True) -> None:
         super().__init__()
         self.path_to_target = path_to_target
         self.name_scf_in = name_scf_in
+        self.is_validate_strict = is_validate_strict
 
         with open(os.path.join(path_to_target, name_scf_out)) as f:
             atom_gen = read_espresso_out(f, index=slice(None))
@@ -128,7 +129,10 @@ class PWscfParser(BaseParser):
                 raise Exception('invalid: convergence NOT achieved')
 
             if 'SCF correction compared to forces is large' in line:
-                raise Exception('invalid: Unreliable scf result')
+                if self.is_validate_strict:
+                    raise Exception('invalid: Unreliable scf result')
+                else:
+                    print('WARNING: Unreliable scf result')
 
     
     def get_au2ang(self):

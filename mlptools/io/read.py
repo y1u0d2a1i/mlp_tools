@@ -13,7 +13,7 @@ from mlptools.io.parser import PWscfParser
 from mlptools.io.parser import ASEParser
 
 
-def read_from_format(path2target:str=None, format:str=None, structure_id=None, ase_atoms: Atoms=None) -> MLPAtoms:
+def read_from_format(path2target:str=None, format:str=None, structure_id=None, ase_atoms: Atoms=None, is_validate_strict=True) -> MLPAtoms:
     """Get MLPAtoms from some outputs. Currently support only PWscf
 
     Args:
@@ -27,7 +27,11 @@ def read_from_format(path2target:str=None, format:str=None, structure_id=None, a
         MLPAtoms: _description_
     """
     if format == 'espresso-in':
-        parser = PWscfParser(path2target, structure_id=structure_id)
+        parser = PWscfParser(
+            path_to_target=path2target, 
+            structure_id=structure_id,
+            is_validate_strict=is_validate_strict
+        )
     elif format == 'ase':
         parser = ASEParser(
             ase_atoms=ase_atoms,
