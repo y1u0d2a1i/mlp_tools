@@ -4,6 +4,7 @@ from typing import List
 from abc import ABC, abstractmethod
 from ase import Atoms
 import os
+import numpy as np  
 
 
 def write_from_atoms(atoms: MLPAtoms, format: str, structure_id=None) -> List[str]:
@@ -86,10 +87,17 @@ class QuantumEspressoWriter(BaseWriter):
         return scf_input_lines
 
 class N2p2Writer(BaseWriter):
-    def __init__(self, atoms: Atoms, is_comment=True, structure_id=None) -> None:
+    def __init__(
+            self, 
+            atoms: Atoms, 
+            is_comment=True, 
+            structure_id=None,
+            has_calculator=True
+        ) -> None:
         self.is_comment = is_comment
         self.atoms = atoms
         self.structure_id = structure_id
+        self.has_calculator = has_calculator
         
 
     def n2p2_comment(self):
@@ -107,7 +115,7 @@ class N2p2Writer(BaseWriter):
     def n2p2_atom(self):
         line = []
         coord = self.atoms.positions
-        force = self.atoms.get_forces()
+        force = self.n2p2_force()
         species = self.atoms.get_chemical_symbols()
         for c, f, specie in zip(coord, force, species):
             c = [str(i) for i in list(c)]
@@ -118,8 +126,18 @@ class N2p2Writer(BaseWriter):
         return line
     
     def n2p2_energy(self):
-        energy = self.atoms.get_potential_energy()
+        if self.has_calculator:
+            energy = self.atoms.get_potential_energy()
+        else:
+            energy = 0.0
         return f'energy {energy}'
+
+
+    def n2p2_force(self):
+        if self.has_calculator:
+            return self.atoms.get_forces()
+        else:
+            return np.zeros((len(self.atoms), 3))
     
     def n2p2_charge(self):
         return 'charge 0.0'
