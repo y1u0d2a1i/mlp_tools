@@ -9,7 +9,7 @@ import numpy as np
 
 def write_from_atoms(atoms: MLPAtoms, format: str, structure_id=None) -> List[str]:
     if format == 'n2p2':
-        writer = N2p2Writer(atoms.ase_atoms, structure_id=structure_id)
+        writer = N2p2Writer(atoms, structure_id=atoms.structure_id)
     else:
         raise Exception('Not supported format')
     
@@ -89,7 +89,7 @@ class QuantumEspressoWriter(BaseWriter):
 class N2p2Writer(BaseWriter):
     def __init__(
             self, 
-            atoms: Atoms, 
+            atoms: MLPAtoms, 
             is_comment=True, 
             structure_id=None,
             has_calculator=True
@@ -105,7 +105,7 @@ class N2p2Writer(BaseWriter):
 
     def n2p2_cell(self):
         line = []
-        cell = self.atoms.cell[:]
+        cell = self.atoms.cell
         for l_vec in cell:
             l_vec = [str(i) for i in list(l_vec)]
             tmp = ' '.join(l_vec)
@@ -114,9 +114,9 @@ class N2p2Writer(BaseWriter):
     
     def n2p2_atom(self):
         line = []
-        coord = self.atoms.positions
+        coord = self.atoms.coord
         force = self.n2p2_force()
-        species = self.atoms.get_chemical_symbols()
+        species = self.atoms.ase_atoms.get_chemical_symbols()
         for c, f, specie in zip(coord, force, species):
             c = [str(i) for i in list(c)]
             f = [str(i) for i in list(f)]
@@ -127,7 +127,7 @@ class N2p2Writer(BaseWriter):
     
     def n2p2_energy(self):
         if self.has_calculator:
-            energy = self.atoms.get_potential_energy()
+            energy = self.atoms.energy
         else:
             energy = 0.0
         return f'energy {energy}'
@@ -135,7 +135,7 @@ class N2p2Writer(BaseWriter):
 
     def n2p2_force(self):
         if self.has_calculator:
-            return self.atoms.get_forces()
+            return self.atoms.force
         else:
             return np.zeros((len(self.atoms), 3))
     

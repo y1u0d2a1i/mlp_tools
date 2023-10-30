@@ -162,10 +162,12 @@ def read_from_n2p2_data(path2target:str, data_filename:str="input.data") -> List
         atoms = [l for l in block if l.startswith("atom")]
         coord = []
         force = []
+        chemical_symbols = []
         for atom in atoms:
             splitted_atom = list(filter(None, atom.split(' ')))
             coord.append(splitted_atom[1:4])
             force.append(splitted_atom[-3:])
+            chemical_symbols.append(splitted_atom[4])
         coord = np.array(coord, dtype=float)
         force = np.array(force, dtype=float)
         
@@ -179,7 +181,7 @@ def read_from_n2p2_data(path2target:str, data_filename:str="input.data") -> List
             energy=energy,
             n_atoms=len(coord),
             structure_id=structure_id,
-            symbols=f'Si{len(coord)}'
+            symbols=chemical_symbols,
         )
         all_mlpatoms.append(mlpatom)
     return all_mlpatoms

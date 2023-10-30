@@ -23,7 +23,7 @@ class MLPAtoms:
         self.frame = frame
         self.additional_info = additional_info
         self.path = path
-        self.ase_atoms = ase_atoms
+        self.set_ase_atoms()
 
         self.distance_btw_nearest_neighbor = None
     
@@ -45,6 +45,14 @@ class MLPAtoms:
 
     def get_atomic_volume(self):
         return self.get_volume() / self.n_atoms
+    
+    def set_ase_atoms(self):
+        self.ase_atoms = Atoms(
+            symbols=self.symbols,
+            positions=self.coord,
+            cell=self.cell,
+            pbc=(1,1,1)
+            )
 
     def get_ase_atoms(self):
         if self.ase_atoms is not None:
