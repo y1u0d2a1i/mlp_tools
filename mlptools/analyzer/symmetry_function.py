@@ -10,8 +10,8 @@ from mlptools.utils.utils import remove_empty_from_array, log_decorator
 class SymmetryFunctionValueReader():
     def __init__(self, path2target):
         # check file existence
-        if not os.path.exists(os.path.join(path2target, "function.data")):
-            raise ValueError("function.data does not exist")
+        if not os.path.exists(os.path.join(path2target, "atomic-env.G")):
+            raise ValueError("atomic-env.G does not exist")
         if not os.path.exists(os.path.join(path2target, "input.nn")):
             raise ValueError("input.nn does not exist")
         if not os.path.exists(os.path.join(path2target, "nnp-scaling.log.0000")):
@@ -24,12 +24,12 @@ class SymmetryFunctionValueReader():
             self, 
             atom_num_symbol_map: Dict[int, str]
         ) -> Dict[str, List[float]]:
-        """対称性関数の値をfunction.dataから取得する
+        """対称性関数の値をatomic-env.Gから取得する
 
         Parameters
         ----------
         path2target : str
-            function.dataまでへのパス
+            atomic-env.Gまでへのパス
         atom_num_symbol_map : Dict[int, str]
             原子番号と元素記号の対応表
             (ex)
@@ -50,37 +50,26 @@ class SymmetryFunctionValueReader():
         ValueError
             _description_
         """
-        if not os.path.exists(os.path.join(self.path2target, "function.data")):
-            raise ValueError("function.data does not exist")
-        
-        with open(os.path.join(self.path2target, "function.data"), "r") as f:
-            lines = [s.strip() for s in f.readlines()]
-        
 
-        idx_list = []
-        for i, line in enumerate(lines):
-            if len(remove_empty_from_array(line.split(' '))) == 1:
-                idx_list.append(i)
-
-        sf_val_list = []
-        for i, idx in enumerate(idx_list):
-            try:
-                block = lines[idx+1:idx_list[i+1]-1]
-            except:
-                block = lines[idx+1:-1]
-            
-            for l in block:
-                sf_val_list.append(list(map(float, remove_empty_from_array(l.split(' ')))))
-        
         # 初期化
         sf_val_list_dict = {}
         for _, atom_symbol in atom_num_symbol_map.items():
             sf_val_list_dict[atom_symbol] = []
         
-        # 1つ目の要素はintなのでintに変換し、要素ごとに分ける
-        for sf_val in sf_val_list:
-            if int(sf_val[0]) in atom_num_symbol_map.keys():
-                sf_val_list_dict[atom_num_symbol_map[int(sf_val[0])]].append(sf_val[1:])
+        # 対称性関数の読み込み
+        with open(os.path.join(self.path2target, "atomic-env.G"), "r") as f:
+            lines = [s.strip() for s in f.readlines()]
+        n_atoms = len(lines)
+        for i, l in enumerate(lines):
+            # show progress every 10000 lines
+            if i % 10000 == 0:
+                print(f"[PROGRESS] {i}/{n_atoms}")
+            l_splitted = l.split()
+            atomic_symbol = l_splitted[0]
+            sf_vec = np.array(l_splitted[1:], dtype=float)
+
+            if atomic_symbol in sf_val_list_dict.keys():
+                sf_val_list_dict[atomic_symbol].append(sf_vec)
             else:
                 raise ValueError("Unknown atomic number please check atom_num_symbol_map")
         return sf_val_list_dict
