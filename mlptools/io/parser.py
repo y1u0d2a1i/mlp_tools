@@ -150,9 +150,10 @@ class PWscfParser(BaseParser):
 
 
 class ASEParser(BaseParser):
-    def __init__(self, ase_atoms, structure_id=None) -> None:
+    def __init__(self, ase_atoms, structure_id=None, has_calculator=True) -> None:
         self.structure_id = structure_id 
         self.ase_atoms = ase_atoms
+        self.has_calculator = has_calculator
         # Atomsのバリデーション
         self.validate_ase_atoms()
         # Atomsの取得
@@ -178,11 +179,17 @@ class ASEParser(BaseParser):
     
 
     def get_energy(self, is_ev=True):
-        return self.ase_atoms.get_potential_energy()
+        if self.has_calculator:
+            return self.ase_atoms.get_potential_energy()
+        else:
+            return 0.0
     
 
     def get_force(self, is_ev_ang=True):
-        return self.ase_atoms.get_forces()
+        if self.has_calculator:
+            return self.ase_atoms.get_forces()
+        else:
+            return np.zeros((len(self.ase_atoms), 3))
 
     
     def get_structure_id(self):
