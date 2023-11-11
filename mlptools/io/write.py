@@ -9,7 +9,7 @@ import numpy as np
 
 def write_from_atoms(atoms: MLPAtoms, format: str, structure_id=None) -> List[str]:
     if format == 'n2p2':
-        writer = N2p2Writer(atoms, structure_id=atoms.structure_id)
+        writer = N2p2Writer(atoms, structure_id=structure_id)
     else:
         raise Exception('Not supported format')
     

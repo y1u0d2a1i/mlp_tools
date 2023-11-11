@@ -164,8 +164,9 @@ class ASEParser(BaseParser):
         #     raise FileNotFoundError(f"{self.ase_atoms_pkl_name} is not found in {self.path2target}")
 
         # ase_atoms = pickle.load(open(os.path.join(self.path2target, self.ase_atoms_pkl_name), 'rb'))
-        if not isinstance(self.ase_atoms, Atoms):
-            raise Exception(f"{self.ase_atoms_pkl_name} is not ase.Atoms object")
+        # if not isinstance(self.ase_atoms, Atoms):
+        #     raise Exception(f"{self.ase_atoms_pkl_name} is not ase.Atoms object")
+        pass
 
     
     def get_cell(self):
