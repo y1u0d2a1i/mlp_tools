@@ -8,17 +8,20 @@ from mlptools.config.symmetry_function import RadialSymmetryFunctionConfig, Angu
 from mlptools.utils.utils import remove_empty_from_array, log_decorator
 
 class SymmetryFunctionValueReader():
-    def __init__(self, path2target):
+    def __init__(self, path2target, path2nnpscaling=None):
         # check file existence
         if not os.path.exists(os.path.join(path2target, "atomic-env.G")):
             raise ValueError("atomic-env.G does not exist")
         if not os.path.exists(os.path.join(path2target, "input.nn")):
             raise ValueError("input.nn does not exist")
-        if not os.path.exists(os.path.join(path2target, "nnp-scaling.log.0000")):
-            raise ValueError("nnp-scaling.log.0000 does not exist")
+        
+        path2nnpscaling = os.path.join(path2target, "nnp-scaling.log.0000") if path2nnpscaling is None else path2nnpscaling
+        if not os.path.exists(path2nnpscaling):
+            raise ValueError(f"nnp-scaling.log.0000 does not exist in {path2nnpscaling}")
         print("All files exist")
         
         self.path2target = path2target
+        self.path2nnpscaling = path2nnpscaling
 
     def symmetry_function_values_dict(
             self, 
@@ -106,13 +109,12 @@ class SymmetryFunctionValueReader():
         ValueError
             _description_
         """
-        if not os.path.exists(os.path.join(self.path2target, 'nnp-scaling.log.0000')):
-            raise ValueError("nnp-scaling.log.0000 does not exist")
+
 
         if not os.path.exists(os.path.join(self.path2target, 'input.nn')):
             raise ValueError("input.nn does not exist")
         
-        with open(os.path.join(self.path2target, 'nnp-scaling.log.0000'), mode='r') as f:
+        with open(os.path.join(self.path2nnpscaling), mode='r') as f:
             scaling_log_lines = [s.strip() for s in f.readlines()]
 
         keyword = f"Short range atomic symmetry functions element"
