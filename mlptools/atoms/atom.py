@@ -8,6 +8,8 @@ from ovito.pipeline import StaticSource, Pipeline
 from ovito.io.ase import ase_to_ovito
 from typing import Dict
 
+from mlptools.analyzer.nearest_neighbor import NearestNeighborCalculator
+
 class MLPAtoms:
     def __init__(self, cell, coord, energy, force, n_atoms, total_magnetization=None, structure_id=None, symbols=None, frame=None, additional_info=None, path=None, ase_atoms=None) -> None:
         self.cell = cell
@@ -21,7 +23,7 @@ class MLPAtoms:
         self.frame = frame
         self.additional_info = additional_info
         self.path = path
-        self.ase_atoms = ase_atoms
+        self.set_ase_atoms()
 
         self.distance_btw_nearest_neighbor = None
     
@@ -43,6 +45,14 @@ class MLPAtoms:
 
     def get_atomic_volume(self):
         return self.get_volume() / self.n_atoms
+    
+    def set_ase_atoms(self):
+        self.ase_atoms = Atoms(
+            symbols=self.symbols,
+            positions=self.coord,
+            cell=self.cell,
+            pbc=(1,1,1)
+            )
 
     def get_ase_atoms(self):
         if self.ase_atoms is not None:
@@ -61,22 +71,8 @@ class MLPAtoms:
         """set distance(ang) between nearest neighbor
 
         """
-        aseatoms = self.get_ase_atoms()
-        min_distance_list = [min(distance[np.where(distance != 0.0)]) for distance in aseatoms.get_all_distances(mic=True)]
-        # nl = NeighborList([rcut/2]*self.n_atoms, self_interaction=False, bothways=False)
-        # nl.update(aseatoms)
-
-        # min_distance_list = []
-        # for i in range(self.n_atoms): 
-        #     nearest_neighbors = nl.get_neighbors(i)[0]
-        #     distances = aseatoms.get_distances(i, nearest_neighbors, mic=True)
-        #     print(distances)
-        #     min_distance_list.append(min(distances)))
-        
-        if len(min_distance_list) > 0:
-            self.distance_btw_nearest_neighbor = min(min_distance_list)
-        else:
-            print(f"There's no neighbors")
+        calculator = NearestNeighborCalculator(self.ase_atoms)
+        self.distance_btw_nearest_neighbor = calculator.get_nearest_neighbor_dict()
 
     def get_rdf(self, rcut=6, bins=100) -> np.ndarray:
         """get radial distribution function val

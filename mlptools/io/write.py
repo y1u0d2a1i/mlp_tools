@@ -4,11 +4,12 @@ from typing import List
 from abc import ABC, abstractmethod
 from ase import Atoms
 import os
+import numpy as np  
 
 
 def write_from_atoms(atoms: MLPAtoms, format: str, structure_id=None) -> List[str]:
     if format == 'n2p2':
-        writer = N2p2Writer(atoms.ase_atoms, structure_id=structure_id)
+        writer = N2p2Writer(atoms, structure_id=structure_id)
     else:
         raise Exception('Not supported format')
     
@@ -23,14 +24,15 @@ class BaseWriter(ABC):
         raise NotImplementedError
 
 class QuantumEspressoWriter(BaseWriter):
-    def __init__(self, atoms: Atoms, path2template: str) -> None:
+    def __init__(self, atoms: Atoms, path2template: str, scf_filename="scf.in", out_dir=None) -> None:
         super().__init__(atoms)
         self.template = path2template
+        self.scf_filename = scf_filename
+        self.out_dir = out_dir
     
-
     def read_template(self):
         # read scf.in.template
-        with open(os.path.join(self.template, 'scf.in'), 'r') as f:
+        with open(os.path.join(self.template, self.scf_filename), 'r') as f:
             lines = [line.strip() for line in f.readlines()]
         return lines
     
@@ -51,8 +53,12 @@ class QuantumEspressoWriter(BaseWriter):
     
     def output(self):
         scf_input_lines = self.read_template()
-        num_atoms = self.atoms.get_global_number_of_atoms()
+        # change outdir
+        if self.out_dir is not None:
+            outdir_idx = self.get_param_idx('outdir', scf_input_lines)
+            scf_input_lines[outdir_idx] = f"outdir = '{self.out_dir}'"
         # change num of atoms
+        num_atoms = self.atoms.get_global_number_of_atoms()
         num_atoms_idx = self.get_param_idx('nat', scf_input_lines)
         scf_input_lines[num_atoms_idx] = f'nat = {num_atoms}'
 
@@ -81,10 +87,17 @@ class QuantumEspressoWriter(BaseWriter):
         return scf_input_lines
 
 class N2p2Writer(BaseWriter):
-    def __init__(self, atoms: Atoms, is_comment=True, structure_id=None) -> None:
+    def __init__(
+            self, 
+            atoms: MLPAtoms, 
+            is_comment=True, 
+            structure_id=None,
+            has_calculator=True
+        ) -> None:
         self.is_comment = is_comment
         self.atoms = atoms
         self.structure_id = structure_id
+        self.has_calculator = has_calculator
         
 
     def n2p2_comment(self):
@@ -92,7 +105,7 @@ class N2p2Writer(BaseWriter):
 
     def n2p2_cell(self):
         line = []
-        cell = self.atoms.cell[:]
+        cell = self.atoms.cell
         for l_vec in cell:
             l_vec = [str(i) for i in list(l_vec)]
             tmp = ' '.join(l_vec)
@@ -101,9 +114,9 @@ class N2p2Writer(BaseWriter):
     
     def n2p2_atom(self):
         line = []
-        coord = self.atoms.positions
-        force = self.atoms.get_forces()
-        species = self.atoms.get_chemical_symbols()
+        coord = self.atoms.coord
+        force = self.n2p2_force()
+        species = self.atoms.ase_atoms.get_chemical_symbols()
         for c, f, specie in zip(coord, force, species):
             c = [str(i) for i in list(c)]
             f = [str(i) for i in list(f)]
@@ -113,8 +126,18 @@ class N2p2Writer(BaseWriter):
         return line
     
     def n2p2_energy(self):
-        energy = self.atoms.get_potential_energy()
+        if self.has_calculator:
+            energy = self.atoms.energy
+        else:
+            energy = 0.0
         return f'energy {energy}'
+
+
+    def n2p2_force(self):
+        if self.has_calculator:
+            return self.atoms.force
+        else:
+            return np.zeros((len(self.atoms), 3))
     
     def n2p2_charge(self):
         return 'charge 0.0'

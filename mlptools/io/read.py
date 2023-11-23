@@ -6,12 +6,14 @@ from typing import List
 
 from ovito.io import import_file
 from ovito.io.ase import ovito_to_ase
+from ase import Atoms
 
 from mlptools.atoms.atom import MLPAtoms
 from mlptools.io.parser import PWscfParser
+from mlptools.io.parser import ASEParser
 
 
-def read_from_format(path2target:str=None, format:str=None, structure_id=None) -> MLPAtoms:
+def read_from_format(path2target:str=None, format:str=None, structure_id=None, ase_atoms: Atoms=None, is_validate_strict=True, has_calculator=True) -> MLPAtoms:
     """Get MLPAtoms from some outputs. Currently support only PWscf
 
     Args:
@@ -25,7 +27,17 @@ def read_from_format(path2target:str=None, format:str=None, structure_id=None) -
         MLPAtoms: _description_
     """
     if format == 'espresso-in':
-        parser = PWscfParser(path2target, structure_id=structure_id)
+        parser = PWscfParser(
+            path_to_target=path2target, 
+            structure_id=structure_id,
+            is_validate_strict=is_validate_strict
+        )
+    elif format == 'ase':
+        parser = ASEParser(
+            ase_atoms=ase_atoms,
+            structure_id=structure_id,
+            has_calculator=has_calculator
+        )
     else:
         raise Exception(f'{format} is not supported')
     
@@ -118,9 +130,9 @@ def read_from_dp_data(path2target:str, additional_info=None) -> List[MLPAtoms]:
     return all_atoms
 
 
-def read_from_n2p2_data(path2target:str) -> List[MLPAtoms]:
+def read_from_n2p2_data(path2target:str, data_filename:str="input.data") -> List[MLPAtoms]:
     def get_lattice_from_n2p2_data(path2target):
-        with open(os.path.join(path2target, "input.data"), mode="r") as f:
+        with open(os.path.join(path2target, data_filename), mode="r") as f:
             lines = [s.strip() for s in f.readlines()]
         block = []
         block_start = []
@@ -147,20 +159,22 @@ def read_from_n2p2_data(path2target:str) -> List[MLPAtoms]:
         structure_id = comment[0].split(' ')[1]
 
         lattice = [l for l in block if l.startswith("lattice")]
-        lattice = np.array([l.split(' ')[1:] for l in lattice], dtype=float)
+        lattice = np.array([list(filter(None, l.split(' ')))[1:] for l in lattice], dtype=float)
         
         atoms = [l for l in block if l.startswith("atom")]
         coord = []
         force = []
+        chemical_symbols = []
         for atom in atoms:
-            splitted_atom = atom.split(' ')
+            splitted_atom = list(filter(None, atom.split(' ')))
             coord.append(splitted_atom[1:4])
             force.append(splitted_atom[-3:])
+            chemical_symbols.append(splitted_atom[4])
         coord = np.array(coord, dtype=float)
         force = np.array(force, dtype=float)
         
-        energy = float([l for l in block if l.startswith("energy")][0].split(' ')[1])
-        charge = float([l for l in block if l.startswith("charge")][0].split(' ')[1])
+        energy = float([l for l in block if l.startswith("energy")][0].split(' ')[-1])
+        charge = float([l for l in block if l.startswith("charge")][0].split(' ')[-1])
 
         mlpatom = MLPAtoms(
             cell=lattice,
@@ -169,7 +183,7 @@ def read_from_n2p2_data(path2target:str) -> List[MLPAtoms]:
             energy=energy,
             n_atoms=len(coord),
             structure_id=structure_id,
-            symbols=f'Si{len(coord)}'
+            symbols=chemical_symbols,
         )
         all_mlpatoms.append(mlpatom)
     return all_mlpatoms
