@@ -60,3 +60,12 @@ def get_atom_number(species):
         return int(atom_num) + 1
     except:
         print('Invalid speacies')
+    
+
+def change_potential_lines(lmp_lines, cutoff, path2potential):
+    for i, l in enumerate(lmp_lines):
+        if "variable nnpCutoff" in l:
+            lmp_lines[i] = f"variable nnpCutoff equal {cutoff}"
+        if "variable nnpDir" in l:
+            lmp_lines[i] = f'variable nnpDir string "{path2potential}"'
+    return lmp_lines
