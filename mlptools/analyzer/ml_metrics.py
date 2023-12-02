@@ -162,12 +162,21 @@ def get_convert_factor(path2target):
     with open(os.path.join(path2target, 'input.nn'), mode='r') as f:
         lines = [s.strip() for s in f.readlines()]
 
+    target_val_idx = 1
     for l in lines:
-        if 'mean_energy' in l: 
-            mean_energy = float(l.split(' ')[-1])
+        if 'mean_energy' in l:
+            mean_energy = float(l.split()[target_val_idx])
         if 'conv_energy' in l:
-            conv_energy = float(l.split(' ')[-1])
+            conv_energy = float(l.split()[target_val_idx])
         if 'conv_length' in l:
-            conv_length = float(l.split(' ')[-1])
+            conv_length = float(l.split()[target_val_idx])
     
     return mean_energy, conv_energy, conv_length
+
+def isfloat(s):
+    try:
+        float(s)
+    except ValueError:
+        return False
+    else:
+        return True
