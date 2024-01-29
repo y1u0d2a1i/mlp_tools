@@ -3,6 +3,7 @@ import os
 from glob import glob
 import re
 from typing import List
+from tqdm import tqdm
 
 from ovito.io import import_file
 from ovito.io.ase import ovito_to_ase
@@ -54,7 +55,7 @@ def read_from_format(path2target:str=None, format:str=None, structure_id=None, a
             path=path2target,
         )
 
-def read_from_lmp_dump(path2dump:str) -> List[MLPAtoms]:
+def read_from_lmp_dump(path2dump:str, return_ase=False) -> List[MLPAtoms]:
     """get list of mlpatoms from lammps dumpfile
 
     Args:
@@ -73,22 +74,20 @@ def read_from_lmp_dump(path2dump:str) -> List[MLPAtoms]:
 
     all_atoms = []
     # Loop over all frames of the sequence.
-    for frame_index in range(pipeline.source.num_frames):
+    for frame_index in tqdm(range(pipeline.source.num_frames)):
         data = pipeline.source.compute(frame_index)
         ase_atoms = ovito_to_ase(data)
-
-        n_atoms = ase_atoms.get_positions().shape[0]
-        mlpatoms = MLPAtoms(
-            cell=ase_atoms.cell[:],
-            coord=ase_atoms.get_positions(),
-            force=None,
-            energy=None,
-            n_atoms=n_atoms,
-            structure_id=None,
-            symbols=f'Si{n_atoms}',
-            frame=frame_index
-        )
-        all_atoms.append(mlpatoms)
+        if return_ase:
+            all_atoms.append(ase_atoms)
+            continue
+        else:
+            mlpatoms = read_from_format(
+                ase_atoms=ase_atoms,
+                format='ase',
+                structure_id=None,
+                has_calculator=False
+            )
+            all_atoms.append(mlpatoms)
     return all_atoms
 
 
